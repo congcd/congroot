@@ -1,3 +1,132 @@
 test
 https://howtodoinjava.com/jersey/jersey-restful-client-examples/
 https://blog.csdn.net/qq_23660243/article/details/54406075
+
+---------------------------------------------
+json转换
+package file.util;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonParseException;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class JacksonUtil {
+	private JacksonUtil() {
+
+	}
+
+	/**
+	 * 将java对象转换成json字符串
+	 * 
+	 * @param obj
+	 *            准备转换的对象
+	 * @return json字符串
+	 * @throws JsonProcessingException
+	 * @throws Exception
+	 */
+	public static String beanToJson(Object obj) throws JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		return objectMapper.writeValueAsString(obj);
+	}
+
+	/**
+	 * 将json字符串转换成java对象
+	 * 
+	 * @param <T>被转换成的具体的类
+	 * @param json
+	 *            准备转换的json字符串
+	 * @param cls
+	 *            准备转换的类
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
+	 * @throws Exception
+	 */
+	public static <T> T jsonToBean(String json, Class<T> cls) throws IOException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		if (JudgeNullUtil.isEmpty(json)) {
+			return objectMapper.readValue("{}", cls);
+		}
+		return objectMapper.readValue(json, cls);
+	}
+
+	/**
+	 * 将json字符串转换成java对象, 该对象可以只包含部分属性
+	 * 
+	 * @param json
+	 *            用于转换的json字符串
+	 * @param cls
+	 *            转换的目标类
+	 * @return
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
+	public static <T> T jsonToBeanByMatchAttribute(String json, Class<T> cls)
+			throws JsonParseException, JsonMappingException, IOException {
+		if (JudgeNullUtil.isEmpty(json)) {
+			return null;
+		}
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		return objectMapper.readValue(json, cls);
+	}
+
+	/**
+	 * 构造Json数据
+	 * 
+	 * @param jsonDataMap
+	 * @return
+	 */
+	public static String buildJson(Map<String, ?> jsonDataMap) {
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		String json = "";
+		try {
+			json = objectMapper.writeValueAsString(jsonDataMap);
+		} catch (JsonGenerationException e) {
+			log.warn("JsonGenerationException", e);
+		} catch (JsonMappingException e) {
+			log.warn("JsonMappingException", e);
+		} catch (IOException e) {
+			log.warn("IOException", e);
+		} // map转json
+
+		return json;
+
+	}
+
+	/**
+	 * 将Json对象转换成Map
+	 * 
+	 * @param jsonString
+	 * @return
+	 * @throws InstallerException
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> toMap(String jsonString) throws Exception {
+		ObjectMapper objectMapper = new ObjectMapper();
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			map = objectMapper.readValue(jsonString, Map.class);
+		} catch (Exception e) {
+			log.warn("JsonParseException", e);
+			throw new Exception("Fail to convert json to Map :" + jsonString, e);
+		}
+
+		return map;
+	}
+
+}
+
