@@ -124,9 +124,154 @@ public class JacksonUtil {
 			log.warn("JsonParseException", e);
 			throw new Exception("Fail to convert json to Map :" + jsonString, e);
 		}
-
 		return map;
 	}
-
 }
 
+---------------------------------------------
+package json.toobj;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class ToObjectNeed {
+
+	private ObjectMapper MAPPER = new ObjectMapper();
+
+	public static void main(String[] args) {
+		new ToObjectNeed().test();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void test() {
+		List<User> users = getUsers();
+		System.out.println("原始对象列表：" + users);
+
+		// 对象列表转字符串
+		String jsonStr = getJsonStr(users);
+		System.out.println("对象列表转换成字符串：" + jsonStr);
+
+		// 字符串转对象列表
+		List<User> userBeans = toBeans(jsonStr, new TypeReference<List<User>>() {
+		});
+		System.out.println("字段串转换为对象列表：" + userBeans);
+		System.out.println("转换成的对象数据类型：" + userBeans.get(0).getClass().getName());
+
+		// 转换Object对象，实际是List<User>
+		Object datas = userBeans.get(0).getDatas();
+		if (datas instanceof List) {
+			List<User> cUsers = new ObjectMapper().convertValue((List<Map<String, String>>) datas,
+					new TypeReference<List<User>>() {
+					});
+			for (User user : cUsers) {
+				System.out.println(user);
+			}
+		}
+	}
+
+	private <T> T toBeans(String json, TypeReference<T> type) {
+		try {
+			return MAPPER.readValue(json, type);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to json to bean! Json:[" + json + "]", e);
+		}
+	}
+
+	// 将对象列表转换为字符串
+	private <T> String getJsonStr(List<T> users) {
+		try {
+			return MAPPER.writeValueAsString(users);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private List<User> getUsers() {
+		List<User> users = new ArrayList<>();
+		User user1 = new User();
+		user1.setAge(11);
+		user1.setName("a");
+		user1.setDatas(getDatas());
+		users.add(user1);
+
+		User user2 = new User();
+		user2.setAge(22);
+		user2.setName("b");
+		user1.setDatas(getDatas());
+		users.add(user2);
+
+		return users;
+	}
+
+	private Object getDatas() {
+		List<User> cUsers = new ArrayList<>();
+		User user1 = new User();
+		user1.setAge(33);
+		user1.setName("c");
+		cUsers.add(user1);
+
+		User user2 = new User();
+		user2.setAge(44);
+		user2.setName("d");
+		cUsers.add(user1);
+		return cUsers;
+	}
+}
+package json.toobj;
+
+public class User {
+
+	private String name;
+	private int age;
+	private Object datas;
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public Object getDatas() {
+		return datas;
+	}
+
+	public void setDatas(Object datas) {
+		this.datas = datas;
+	}
+
+	@Override
+	public String toString() {
+		return "User [name=" + name + ", age=" + age + ", datas=" + datas + "]";
+	}
+}
+
+---------------------------------------------
+
+---------------------------------------------
+
+
+---------------------------------------------
+
+
+---------------------------------------------
+
+
+---------------------------------------------
+
+
+---------------------------------------------
